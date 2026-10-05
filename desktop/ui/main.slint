@@ -1,0 +1,298 @@
+import { ScrollView } from "std-widgets.slint";
+
+export global AppTheme {
+    in-out property <bool> dark-mode: false;
+    out property <color> canvas: dark-mode ? #161d17 : #f5f8f2;
+    out property <color> surface: dark-mode ? #202a23 : #fffefb;
+    out property <color> surface-soft: dark-mode ? #29372d : #edf3ec;
+    out property <color> surface-rose: dark-mode ? #3c2931 : #f6e5e9;
+    out property <color> ink: dark-mode ? #f1f3ef : #23362d;
+    out property <color> muted: dark-mode ? #bbc7bd : #58695f;
+    out property <color> muted-soft: dark-mode ? #98a69b : #626f65;
+    out property <color> line: dark-mode ? #39483d : #dce5da;
+    out property <color> primary: dark-mode ? #8ccba5 : #286b50;
+    out property <color> on-primary: dark-mode ? #183b27 : #ffffff;
+    out property <color> accent: dark-mode ? #f1a7b8 : #924359;
+    out property <color> accent-ink: dark-mode ? #f3beca : #873c53;
+    out property <color> success: dark-mode ? #8ccba5 : #286b50;
+    out property <color> danger: dark-mode ? #f1a5b0 : #983d4c;
+    out property <color> danger-soft: dark-mode ? #42282e : #f8e6e8;
+}
+
+export struct MediaItem {
+    name: string,
+    path: string,
+    kind: string,
+    size: string,
+}
+
+component PillButton inherits Rectangle {
+    in property <string> label;
+    in property <color> fill: AppTheme.primary;
+    in property <color> ink: AppTheme.on-primary;
+    callback clicked();
+    accessible-role: button;
+    accessible-label: label;
+    height: 42px;
+    background: fill;
+    border-radius: 13px;
+    opacity: click_area.pressed ? 0.82 : (click_area.has-hover ? 0.92 : 1.0);
+    Text { text: label; color: ink; font-size: 13px; font-weight: 700; horizontal-alignment: center; vertical-alignment: center; }
+    click_area := TouchArea { clicked => { root.clicked(); } }
+}
+
+component SideNavItem inherits Rectangle {
+    in property <string> label;
+    in property <string> symbol;
+    in property <bool> active: false;
+    callback clicked();
+    accessible-role: button;
+    accessible-label: label;
+    height: 48px;
+    background: active ? AppTheme.surface-soft : transparent;
+    border-radius: 13px;
+    Text { x: 15px; width: 24px; height: parent.height; text: symbol; color: active ? AppTheme.primary : AppTheme.muted; font-size: 19px; font-weight: 700; vertical-alignment: center; }
+    Text { x: 48px; width: parent.width - 58px; height: parent.height; text: label; color: active ? AppTheme.ink : AppTheme.muted; font-size: 14px; font-weight: active ? 700 : 500; vertical-alignment: center; }
+    TouchArea { clicked => { root.clicked(); } }
+}
+
+export component MainWindow inherits Window {
+    title: "MaBaeiream";
+    icon: @image-url("../../assets/mabaeiream-icon.png");
+    preferred-width: 1360px;
+    preferred-height: 860px;
+    min-width: 1000px;
+    min-height: 680px;
+    background: AppTheme.canvas;
+
+    in-out property<bool> connected: false;
+    in-out property<string> server-url: "https://ahura.site/mabaeiream";
+    in-out property<string> username: "";
+    in-out property<string> password: "";
+    in-out property<string> link-url: "";
+    in-out property<string> status-text: "";
+    in-out property<bool> is-downloading: false;
+    in-out property<string> voice-state: "idle";
+    in-out property<string> voice-description: "Voice chat ready";
+    in-out property<string> live-stream-path: "";
+    in-out property<string> live-whip-url: "";
+    in-out property<string> live-rtmps-url: "";
+    in-out property<string> live-stream-key: "";
+    in-out property<string> file-query: "";
+    in-out property<string> folder-name: "";
+    in-out property<string> folder-path: "";
+    in-out property<int> selected-tab: 0;
+    in property<[MediaItem]> media-items: [];
+
+    callback connect-requested(string, string, string);
+    callback refresh-requested();
+    callback sign-out-requested();
+    callback media-open-requested(string, string, string);
+    callback create-folder-requested(string);
+    callback folder-up-requested();
+    callback play-link-requested(string);
+    callback download-link-requested(string);
+    callback cancel-download-requested();
+    callback upload-requested();
+    callback watch-live-requested();
+    callback voice-call-requested();
+    callback voice-answer-requested();
+    callback voice-decline-requested();
+    callback voice-end-requested();
+
+    Rectangle {
+        background: AppTheme.canvas;
+        if !root.connected: HorizontalLayout {
+            padding: 36px;
+            spacing: 34px;
+            Rectangle {
+                horizontal-stretch: 1;
+                background: AppTheme.surface-soft;
+                border-radius: 30px;
+                VerticalLayout {
+                    padding: 34px;
+                    spacing: 20px;
+                    Image { source: @image-url("../../assets/mabaeiream-icon.png"); width: 62px; height: 62px; }
+                    Text { text: "A LITTLE PLACE FOR US"; color: AppTheme.accent-ink; font-size: 11px; font-weight: 700; letter-spacing: 2px; }
+                    Text { text: "Make tonight\nfeel a little closer."; color: AppTheme.ink; font-size: 43px; font-family: "Georgia"; }
+                    Text { text: "Your shared shelf, watch room and voice call -\nready whenever the two of you are."; color: AppTheme.muted; font-size: 16px; }
+                    Rectangle { vertical-stretch: 1; background: transparent; }
+                    Rectangle {
+                        height: 160px; background: AppTheme.surface; border-radius: 24px;
+                        HorizontalLayout {
+                            padding: 22px; spacing: 14px;
+                            Rectangle { width: 92px; height: 92px; background: AppTheme.surface-rose; border-radius: 46px; Text { text: "A"; color: AppTheme.accent-ink; font-size: 30px; font-weight: 700; horizontal-alignment: center; vertical-alignment: center; } }
+                            Rectangle { width: 92px; height: 92px; background: AppTheme.surface-soft; border-radius: 46px; Text { text: "E"; color: AppTheme.primary; font-size: 30px; font-weight: 700; horizontal-alignment: center; vertical-alignment: center; } }
+                            VerticalLayout { alignment: center; spacing: 7px; Text { text: "Two seats. One room."; color: AppTheme.ink; font-size: 19px; font-weight: 700; } Text { text: "Pick a film and press play together."; color: AppTheme.muted; font-size: 13px; } }
+                        }
+                    }
+                    Rectangle { vertical-stretch: 1; background: transparent; }
+                    Text { text: "PRIVATE BY DESIGN  ·  CONNECTS TO YOUR SERVER"; color: AppTheme.muted; font-size: 10px; font-weight: 700; letter-spacing: 1px; }
+                }
+            }
+            Rectangle {
+                width: 470px;
+                background: AppTheme.surface;
+                border-color: AppTheme.line;
+                border-width: 1px;
+                border-radius: 30px;
+                VerticalLayout {
+                    padding: 32px;
+                    spacing: 16px;
+                    HorizontalLayout {
+                        height: 38px;
+                        Text { text: "A PRIVATE MEDIA ROOM"; color: AppTheme.accent-ink; font-size: 9px; font-weight: 700; letter-spacing: 1px; vertical-alignment: center; }
+                        Rectangle { horizontal-stretch: 1; background: transparent; }
+                        PillButton { label: AppTheme.dark-mode ? "Day mode" : "Night mode"; fill: AppTheme.surface-soft; ink: AppTheme.ink; width: 98px; height: 36px; clicked => { AppTheme.dark-mode = !AppTheme.dark-mode; } }
+                    }
+                    Rectangle { vertical-stretch: 1; background: transparent; }
+                    Text { text: "Welcome back"; color: AppTheme.ink; font-size: 30px; font-family: "Georgia"; }
+                    Text { text: "Sign in to open your shared space."; color: AppTheme.muted; font-size: 14px; }
+                    Rectangle { height: 6px; background: transparent; }
+                    Text { text: "SERVER"; color: AppTheme.muted; font-size: 10px; font-weight: 700; letter-spacing: 1px; }
+                    Rectangle {
+                        height: 50px; background: AppTheme.canvas; border-color: AppTheme.line; border-width: 1px; border-radius: 14px;
+                        TextInput { x: 14px; y: 2px; width: parent.width - 28px; height: parent.height - 4px; text <=> root.server-url; color: AppTheme.ink; font-size: 14px; vertical-alignment: center; accessible-label: "Secure server address"; }
+                    }
+                    Text { text: "USERNAME"; color: AppTheme.muted; font-size: 10px; font-weight: 700; letter-spacing: 1px; }
+                    Rectangle {
+                        height: 50px; background: AppTheme.canvas; border-color: AppTheme.line; border-width: 1px; border-radius: 14px;
+                        Text { x: 14px; y: 2px; width: parent.width - 28px; height: parent.height - 4px; text: root.username == "" ? "Your account" : ""; color: AppTheme.muted-soft; font-size: 14px; vertical-alignment: center; }
+                        TextInput { x: 14px; y: 2px; width: parent.width - 28px; height: parent.height - 4px; text <=> root.username; color: AppTheme.ink; font-size: 14px; vertical-alignment: center; accessible-label: "Username"; }
+                    }
+                    Text { text: "PASSWORD"; color: AppTheme.muted; font-size: 10px; font-weight: 700; letter-spacing: 1px; }
+                    Rectangle {
+                        height: 50px; background: AppTheme.canvas; border-color: AppTheme.line; border-width: 1px; border-radius: 14px;
+                        TextInput { x: 14px; y: 2px; width: parent.width - 28px; height: parent.height - 4px; text <=> root.password; input-type: InputType.password; color: AppTheme.ink; font-size: 14px; vertical-alignment: center; accessible-label: "Password"; }
+                    }
+                    PillButton { label: "Enter our space"; fill: AppTheme.primary; height: 50px; clicked => { root.connect-requested(root.server-url, root.username, root.password); } }
+                    Text { text: root.status-text; color: AppTheme.danger; font-size: 12px; }
+                    Text { text: "Your password is never saved on this device."; color: AppTheme.muted; font-size: 11px; }
+                    Rectangle { vertical-stretch: 1; background: transparent; }
+                }
+            }
+        }
+
+        if root.connected: HorizontalLayout {
+            padding: 18px;
+            spacing: 18px;
+            Rectangle {
+                width: 220px;
+                background: AppTheme.surface;
+                border-color: AppTheme.line;
+                border-width: 1px;
+                border-radius: 24px;
+                VerticalLayout {
+                    padding: 17px;
+                    spacing: 10px;
+                    HorizontalLayout {
+                        height: 56px; spacing: 10px;
+                        Image { source: @image-url("../../assets/mabaeiream-icon.png"); width: 46px; height: 46px; }
+                        VerticalLayout { alignment: center; spacing: 2px; Text { text: "MaBaeiream"; color: AppTheme.ink; font-size: 16px; font-weight: 700; } Text { text: "our little corner"; color: AppTheme.muted; font-size: 10px; } }
+                    }
+                    Rectangle { height: 12px; background: transparent; }
+                    SideNavItem { label: "Home"; symbol: "⌂"; active: root.selected-tab == 0; clicked => { root.selected-tab = 0; } }
+                    SideNavItem { label: "Our files"; symbol: "▱"; active: root.selected-tab == 1; clicked => { root.selected-tab = 1; } }
+                    SideNavItem { label: "Downloads"; symbol: "↓"; active: root.selected-tab == 2; clicked => { root.selected-tab = 2; } }
+                    SideNavItem { label: "Watch together"; symbol: "▷"; active: root.selected-tab == 3; clicked => { root.selected-tab = 3; } }
+                    Rectangle { height: 14px; background: transparent; }
+                    Rectangle {
+                        height: 184px; background: AppTheme.surface-rose; border-radius: 18px;
+                        VerticalLayout {
+                            padding: 14px; spacing: 8px;
+                            Text { text: "A MOMENT TOGETHER"; color: AppTheme.accent-ink; font-size: 9px; font-weight: 700; letter-spacing: 1px; }
+                            Rectangle { width: 78px; height: 78px; background: AppTheme.surface-rose; border-radius: 39px; Text { text: "♡"; color: AppTheme.accent-ink; font-size: 39px; horizontal-alignment: center; vertical-alignment: center; } }
+                            Text { text: root.voice-description; color: root.voice-state == "failed" ? AppTheme.danger : AppTheme.ink; font-size: 11px; }
+                            if root.voice-state == "idle" || root.voice-state == "failed": PillButton { label: "Start voice chat"; fill: AppTheme.primary; height: 36px; clicked => { root.voice-call-requested(); } }
+                            if root.voice-state == "incoming": HorizontalLayout { spacing: 6px; PillButton { label: "Answer"; fill: AppTheme.success; clicked => { root.voice-answer-requested(); } } PillButton { label: "Decline"; fill: AppTheme.danger-soft; ink: AppTheme.ink; clicked => { root.voice-decline-requested(); } } }
+                            if root.voice-state != "idle" && root.voice-state != "incoming" && root.voice-state != "failed": PillButton { label: "End call"; fill: AppTheme.danger; height: 36px; clicked => { root.voice-end-requested(); } }
+                        }
+                    }
+                    Rectangle { vertical-stretch: 1; background: transparent; }
+                    Rectangle { height: 1px; background: AppTheme.line; }
+                    Text { text: root.username; color: AppTheme.ink; font-size: 13px; font-weight: 700; }
+                    Text { text: root.status-text; color: AppTheme.muted; font-size: 10px; }
+                    PillButton { label: "Sign out"; fill: AppTheme.surface-rose; ink: AppTheme.muted; height: 36px; clicked => { root.sign-out-requested(); } }
+                }
+            }
+
+            VerticalLayout {
+                spacing: 14px;
+                HorizontalLayout {
+                    height: 74px;
+                    VerticalLayout { alignment: center; spacing: 4px; Text { text: "A PRIVATE SPACE FOR TWO"; color: AppTheme.accent-ink; font-size: 10px; font-weight: 700; letter-spacing: 1.5px; } Text { text: root.selected-tab == 0 ? "Your evening, together" : (root.selected-tab == 1 ? "Our shared files" : (root.selected-tab == 2 ? "Bring something in" : "The watch room")); color: AppTheme.ink; font-size: 27px; font-family: "Georgia"; } }
+                    Rectangle { horizontal-stretch: 1; background: transparent; }
+                    PillButton { label: "Refresh"; fill: AppTheme.surface; ink: AppTheme.ink; width: 98px; height: 38px; clicked => { root.refresh-requested(); } }
+                    PillButton { label: AppTheme.dark-mode ? "Day mode" : "Night mode"; fill: AppTheme.surface-soft; ink: AppTheme.ink; width: 98px; height: 38px; clicked => { AppTheme.dark-mode = !AppTheme.dark-mode; } }
+                    Rectangle { width: 8px; background: transparent; }
+                    Rectangle { width: 42px; height: 42px; background: AppTheme.surface-soft; border-radius: 21px; Text { text: "♡"; color: AppTheme.primary; font-size: 20px; horizontal-alignment: center; vertical-alignment: center; } }
+                }
+
+                if root.selected-tab == 0: ScrollView {
+                    VerticalLayout { spacing: 14px;
+                        Rectangle {
+                            height: 246px; background: AppTheme.surface-rose; border-radius: 26px;
+                            HorizontalLayout {
+                                padding: 27px; spacing: 22px;
+                                VerticalLayout { alignment: center; spacing: 11px;
+                                    Text { text: "TONIGHT LOOKS GOOD ON US"; color: AppTheme.accent-ink; font-size: 10px; font-weight: 700; letter-spacing: 1.3px; }
+                                    Text { text: "Pick a movie.\nMake it a date."; color: AppTheme.ink; font-size: 34px; font-family: "Georgia"; }
+                                    Text { text: "Your shared library is one play away."; color: AppTheme.muted; font-size: 13px; }
+                                    HorizontalLayout { spacing: 9px; PillButton { label: "Open watch room"; fill: AppTheme.primary; width: 148px; clicked => { root.selected-tab = 3; } } PillButton { label: "Browse files"; fill: AppTheme.surface; ink: AppTheme.accent-ink; width: 116px; clicked => { root.selected-tab = 1; } } }
+                                }
+                                Rectangle { horizontal-stretch: 1; background: transparent; }
+                                Rectangle {
+                                    width: 300px; background: AppTheme.surface; border-radius: 23px;
+                                    VerticalLayout { alignment: center; spacing: 13px;
+                                        HorizontalLayout { alignment: center; spacing: 14px; Rectangle { width: 78px; height: 78px; background: AppTheme.surface-rose; border-radius: 39px; Text { text: "A"; color: AppTheme.accent-ink; font-size: 26px; font-weight: 700; horizontal-alignment: center; vertical-alignment: center; } } Text { text: "♡"; color: AppTheme.accent; font-size: 25px; vertical-alignment: center; } Rectangle { width: 78px; height: 78px; background: AppTheme.surface-soft; border-radius: 39px; Text { text: "E"; color: AppTheme.primary; font-size: 26px; font-weight: 700; horizontal-alignment: center; vertical-alignment: center; } } }
+                                        Text { text: "Both of you, right here."; color: AppTheme.ink; font-size: 15px; font-weight: 700; horizontal-alignment: center; }
+                                        Text { text: root.voice-description; color: AppTheme.muted; font-size: 11px; horizontal-alignment: center; }
+                                    }
+                                }
+                            }
+                        }
+                        HorizontalLayout { height: 160px; spacing: 14px;
+                            Rectangle { horizontal-stretch: 1; background: AppTheme.surface; border-color: AppTheme.line; border-width: 1px; border-radius: 22px; VerticalLayout { padding: 20px; spacing: 9px; Text { text: "IN YOUR ROOM"; color: AppTheme.muted; font-size: 9px; font-weight: 700; letter-spacing: 1.2px; } Text { text: root.status-text == "" ? "Ready when you are" : root.status-text; color: AppTheme.ink; font-size: 16px; font-weight: 700; } Text { text: "Choose any shared file or supported link."; color: AppTheme.muted; font-size: 12px; } } }
+                            Rectangle { horizontal-stretch: 1; background: AppTheme.surface-soft; border-radius: 22px; VerticalLayout { padding: 20px; spacing: 8px; Text { text: "DESKTOP STREAMING"; color: AppTheme.primary; font-size: 9px; font-weight: 700; letter-spacing: 1.2px; } Text { text: "OBS or Streamlabs"; color: AppTheme.ink; font-size: 17px; font-weight: 700; } Text { text: "Send your desktop straight to the room."; color: AppTheme.muted; font-size: 12px; } PillButton { label: "Set up streaming"; fill: AppTheme.primary; width: 146px; height: 36px; clicked => { root.selected-tab = 3; } } } }
+                        }
+                        HorizontalLayout { height: 36px; Text { text: "Recently shared"; color: AppTheme.ink; font-size: 19px; font-weight: 700; vertical-alignment: center; } Rectangle { horizontal-stretch: 1; background: transparent; } Text { text: "See all files  ›"; color: AppTheme.accent; font-size: 12px; vertical-alignment: center; } TouchArea { clicked => { root.selected-tab = 1; } } }
+                        if root.media-items.length == 0: Rectangle { height: 104px; background: AppTheme.surface; border-radius: 18px; Text { text: "Your shared shelf is waiting for its first video."; color: AppTheme.muted; font-size: 13px; horizontal-alignment: center; vertical-alignment: center; } }
+                        for item in root.media-items: Rectangle { height: 67px; background: AppTheme.surface; border-color: AppTheme.line; border-width: 1px; border-radius: 16px; HorizontalLayout { padding: 10px; spacing: 12px; Rectangle { width: 45px; height: 45px; background: item.kind == "folder" ? AppTheme.surface-soft : (item.kind == "video" ? AppTheme.surface-rose : AppTheme.surface-soft); border-radius: 13px; Text { text: item.kind == "folder" ? "▱" : (item.kind == "video" ? "▷" : "▤"); color: item.kind == "folder" ? AppTheme.primary : (item.kind == "video" ? AppTheme.accent : AppTheme.primary); font-size: 20px; horizontal-alignment: center; vertical-alignment: center; } } VerticalLayout { alignment: center; spacing: 2px; Text { text: item.name; color: AppTheme.ink; font-size: 13px; font-weight: 700; } Text { text: item.kind == "folder" ? "Shared folder" : item.size; color: AppTheme.muted; font-size: 10px; } } Rectangle { horizontal-stretch: 1; background: transparent; } Text { text: item.kind == "video" ? "WATCH  ›" : "OPEN  ›"; color: AppTheme.accent; font-size: 10px; font-weight: 700; vertical-alignment: center; } } TouchArea { clicked => { root.media-open-requested(item.path, item.name, item.kind); } } }
+                    }
+                }
+
+                if root.selected-tab == 1: VerticalLayout {
+                    spacing: 12px;
+                    Rectangle { height: 94px; background: AppTheme.surface; border-radius: 20px; HorizontalLayout { padding: 18px; spacing: 10px; VerticalLayout { alignment: center; spacing: 4px; Text { text: "A home for your favorites"; color: AppTheme.ink; font-size: 18px; font-weight: 700; } Text { text: "Browse, upload and organize the things you watch."; color: AppTheme.muted; font-size: 12px; } } Rectangle { horizontal-stretch: 1; background: transparent; } PillButton { label: "↑  Upload"; fill: AppTheme.primary; width: 116px; clicked => { root.upload-requested(); } } } }
+                    HorizontalLayout { height: 44px; spacing: 8px;
+                        Rectangle { horizontal-stretch: 1; background: AppTheme.surface; border-color: AppTheme.line; border-width: 1px; border-radius: 13px; Text { x: 13px; y: 1px; width: parent.width - 26px; height: parent.height - 2px; text: root.folder-name == "" ? "Name a new folder" : ""; color: AppTheme.muted-soft; font-size: 12px; vertical-alignment: center; } TextInput { x: 13px; y: 1px; width: parent.width - 26px; height: parent.height - 2px; text <=> root.folder-name; color: AppTheme.ink; font-size: 12px; vertical-alignment: center; accessible-label: "New folder name"; } }
+                        PillButton { label: "Create folder"; fill: AppTheme.surface-soft; ink: AppTheme.muted; width: 126px; height: 44px; clicked => { root.create-folder-requested(root.folder-name); } }
+                    }
+                    if root.folder-path != "": HorizontalLayout { height: 30px; spacing: 5px; PillButton { label: "‹  Up one folder"; fill: AppTheme.surface-rose; ink: AppTheme.muted; width: 130px; height: 30px; clicked => { root.folder-up-requested(); } } Text { text: root.folder-path; color: AppTheme.muted; font-size: 11px; vertical-alignment: center; } }
+                    Rectangle { height: 42px; background: AppTheme.surface; border-color: AppTheme.line; border-width: 1px; border-radius: 13px; Text { x: 13px; y: 1px; width: parent.width - 26px; height: parent.height - 2px; text: root.file-query == "" ? "Search in this folder" : ""; color: AppTheme.muted-soft; font-size: 12px; vertical-alignment: center; } TextInput { x: 13px; y: 1px; width: parent.width - 26px; height: parent.height - 2px; text <=> root.file-query; color: AppTheme.ink; font-size: 12px; vertical-alignment: center; accessible-label: "Search shared files"; } }
+                    ScrollView { VerticalLayout { spacing: 8px;
+                        if root.media-items.length == 0: Rectangle { height: 140px; background: AppTheme.surface; border-radius: 18px; VerticalLayout { alignment: center; spacing: 7px; Text { text: "Nothing on the shelf yet"; color: AppTheme.ink; font-size: 17px; font-weight: 700; horizontal-alignment: center; } Text { text: "Add your first file with Upload."; color: AppTheme.muted; font-size: 12px; horizontal-alignment: center; } } }
+                        for item in root.media-items: Rectangle { visible: root.file-query == "" || item.name.to-lowercase().starts-with(root.file-query.to-lowercase()); height: 66px; background: AppTheme.surface; border-color: AppTheme.line; border-width: 1px; border-radius: 15px; HorizontalLayout { padding: 10px; spacing: 12px; Rectangle { width: 44px; height: 44px; background: item.kind == "folder" ? AppTheme.surface-soft : (item.kind == "video" ? AppTheme.surface-rose : AppTheme.surface-soft); border-radius: 12px; Text { text: item.kind == "folder" ? "▱" : (item.kind == "video" ? "▷" : "▤"); color: item.kind == "video" ? AppTheme.accent : AppTheme.primary; font-size: 20px; horizontal-alignment: center; vertical-alignment: center; } } VerticalLayout { alignment: center; spacing: 2px; Text { text: item.name; color: AppTheme.ink; font-size: 13px; font-weight: 700; } Text { text: item.kind == "folder" ? "Folder" : item.size; color: AppTheme.muted; font-size: 10px; } } Rectangle { horizontal-stretch: 1; background: transparent; } Text { text: item.kind == "video" ? "PLAY  ›" : "OPEN  ›"; color: AppTheme.accent; font-size: 10px; font-weight: 700; vertical-alignment: center; } } TouchArea { clicked => { root.media-open-requested(item.path, item.name, item.kind); } } }
+                    } }
+                }
+
+                if root.selected-tab == 2: ScrollView {
+                    VerticalLayout { spacing: 14px;
+                        Rectangle { height: 184px; background: AppTheme.surface-soft; border-radius: 24px; VerticalLayout { padding: 23px; spacing: 11px; Text { text: "LINK DOWNLOADER"; color: AppTheme.muted; font-size: 10px; font-weight: 700; letter-spacing: 1.4px; } Text { text: "Bring a favorite into your library."; color: AppTheme.ink; font-size: 23px; font-family: "Georgia"; } Text { text: "Paste a direct MP4 or other downloadable file link."; color: AppTheme.muted; font-size: 12px; } Rectangle { height: 48px; background: AppTheme.surface; border-radius: 14px; Text { x: 13px; y: 2px; width: parent.width - 26px; height: parent.height - 4px; text: root.link-url == "" ? "Paste link here" : ""; color: AppTheme.muted-soft; font-size: 13px; vertical-alignment: center; } TextInput { x: 13px; y: 2px; width: parent.width - 26px; height: parent.height - 4px; text <=> root.link-url; color: AppTheme.ink; font-size: 13px; vertical-alignment: center; accessible-label: "Link to download"; } } HorizontalLayout { spacing: 9px; PillButton { label: root.is-downloading ? "Downloading…" : "Download to library"; fill: AppTheme.primary; width: 160px; clicked => { root.download-link-requested(root.link-url); } } if root.is-downloading: PillButton { label: "Cancel"; fill: AppTheme.danger-soft; ink: AppTheme.danger; width: 88px; clicked => { root.cancel-download-requested(); } } } } }
+                        Rectangle { height: 92px; background: AppTheme.surface; border-radius: 18px; VerticalLayout { padding: 18px; spacing: 6px; Text { text: "DOWNLOAD STATUS"; color: AppTheme.muted; font-size: 9px; font-weight: 700; letter-spacing: 1px; } Text { text: root.status-text == "" ? "Your next addition will show up here." : root.status-text; color: AppTheme.ink; font-size: 13px; } } }
+                        Rectangle { height: 112px; background: AppTheme.surface-rose; border-radius: 20px; HorizontalLayout { padding: 19px; spacing: 14px; VerticalLayout { alignment: center; spacing: 5px; Text { text: "Already on this device?"; color: AppTheme.ink; font-size: 15px; font-weight: 700; } Text { text: "Upload local videos and files to your shared shelf."; color: AppTheme.muted; font-size: 12px; } } Rectangle { horizontal-stretch: 1; background: transparent; } PillButton { label: "Upload files"; fill: AppTheme.primary; width: 122px; clicked => { root.upload-requested(); } } } }
+                    }
+                }
+
+                if root.selected-tab == 3: ScrollView {
+                    VerticalLayout { spacing: 14px;
+                        Rectangle { height: 152px; background: AppTheme.surface-rose; border-radius: 23px; HorizontalLayout { padding: 22px; spacing: 18px; VerticalLayout { alignment: center; spacing: 8px; Text { text: "WATCH TOGETHER"; color: AppTheme.accent-ink; font-size: 10px; font-weight: 700; letter-spacing: 1.4px; } Text { text: "The room is ready."; color: AppTheme.ink; font-size: 24px; font-family: "Georgia"; } Text { text: root.status-text == "" ? "Pick something to play for both of you." : root.status-text; color: AppTheme.muted; font-size: 12px; } } Rectangle { horizontal-stretch: 1; background: transparent; } Rectangle { width: 110px; height: 110px; background: AppTheme.surface; border-radius: 55px; Text { text: "▷"; color: AppTheme.accent; font-size: 42px; horizontal-alignment: center; vertical-alignment: center; } } } }
+                        Rectangle { height: 178px; background: AppTheme.surface-soft; border-radius: 22px; HorizontalLayout { padding: 20px; spacing: 16px; VerticalLayout { spacing: 7px; Text { text: "STREAM FROM YOUR DESKTOP"; color: AppTheme.primary; font-size: 9px; font-weight: 700; letter-spacing: 1px; } Text { text: "OBS Studio · WHIP"; color: AppTheme.ink; font-size: 15px; font-weight: 700; } Rectangle { height: 30px; background: AppTheme.surface; border-radius: 9px; TextInput { x: 9px; y: 1px; width: parent.width - 18px; height: parent.height - 2px; text: root.live-whip-url; read-only: true; color: AppTheme.primary; font-size: 10px; vertical-alignment: center; accessible-label: "OBS WHIP server URL; select and copy"; } } Text { text: "Streamlabs · Custom RTMP"; color: AppTheme.ink; font-size: 13px; font-weight: 700; } HorizontalLayout { spacing: 7px; Rectangle { height: 30px; background: AppTheme.surface; border-radius: 9px; TextInput { x: 8px; y: 1px; width: parent.width - 16px; height: parent.height - 2px; text: root.live-rtmps-url; read-only: true; color: AppTheme.primary; font-size: 10px; vertical-alignment: center; accessible-label: "Streamlabs server URL; select and copy"; } } Rectangle { width: 200px; height: 30px; background: AppTheme.surface; border-radius: 9px; TextInput { x: 8px; y: 1px; width: parent.width - 16px; height: parent.height - 2px; text: root.live-stream-key; read-only: true; color: AppTheme.primary; font-size: 10px; vertical-alignment: center; accessible-label: "Streamlabs stream key; select and copy"; } } } } PillButton { label: "Watch live"; fill: AppTheme.primary; width: 112px; clicked => { root.watch-live-requested(); } } } }
+                        Rectangle { height: 110px; background: AppTheme.surface; border-radius: 20px; HorizontalLayout { padding: 20px; spacing: 14px; VerticalLayout { alignment: center; spacing: 5px; Text { text: "VOICE, WHENEVER YOU WANT"; color: AppTheme.accent-ink; font-size: 9px; font-weight: 700; letter-spacing: 1px; } Text { text: root.voice-description; color: AppTheme.ink; font-size: 14px; } } Rectangle { horizontal-stretch: 1; background: transparent; } if root.voice-state == "idle" || root.voice-state == "failed": PillButton { label: "Start voice chat"; fill: AppTheme.primary; width: 146px; clicked => { root.voice-call-requested(); } } if root.voice-state == "incoming": PillButton { label: "Answer call"; fill: AppTheme.success; width: 122px; clicked => { root.voice-answer-requested(); } } if root.voice-state == "incoming": PillButton { label: "Decline"; fill: AppTheme.danger-soft; ink: AppTheme.danger; width: 92px; clicked => { root.voice-decline-requested(); } } if root.voice-state != "idle" && root.voice-state != "incoming" && root.voice-state != "failed": PillButton { label: "End call"; fill: AppTheme.danger; width: 102px; clicked => { root.voice-end-requested(); } } } }
+                        Rectangle { height: 90px; background: AppTheme.surface; border-radius: 18px; VerticalLayout { padding: 18px; spacing: 5px; Text { text: "PLAY A LINK TOGETHER"; color: AppTheme.accent-ink; font-size: 9px; font-weight: 700; letter-spacing: 1px; } HorizontalLayout { spacing: 8px; Rectangle { background: AppTheme.canvas; border-color: AppTheme.line; border-width: 1px; border-radius: 12px; Text { x: 11px; y: 1px; width: parent.width - 22px; height: parent.height - 2px; text: root.link-url == "" ? "Paste a supported video link" : ""; color: AppTheme.muted-soft; font-size: 12px; vertical-alignment: center; } TextInput { x: 11px; y: 1px; width: parent.width - 22px; height: parent.height - 2px; text <=> root.link-url; color: AppTheme.ink; font-size: 12px; vertical-alignment: center; accessible-label: "Video link to play together"; } } PillButton { label: "Play for both"; fill: AppTheme.primary; width: 130px; clicked => { root.play-link-requested(root.link-url); } } } } }
+                    }
+                }
+            }
+        }
+    }
+}

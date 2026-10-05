@@ -1,0 +1,25 @@
+[Unit]
+Description=MaBaeiream private media API
+After=network.target
+
+[Service]
+Type=simple
+User=mabaeiream
+Group=mabaeiream
+WorkingDirectory=/var/lib/mabaeiream
+EnvironmentFile=/etc/mabaeiream/mabaeiream.env
+ExecStart=/opt/mabaeiream/bin/mabaeiream-server serve
+Restart=on-failure
+RestartSec=3
+UMask=0027
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/mabaeiream /srv/mabaeiream/media
+MemoryMax=512M
+CPUQuota=100%
+TasksMax=64
+
+[Install]
+WantedBy=multi-user.target

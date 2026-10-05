@@ -1,0 +1,53 @@
+logLevel: warn
+logDestinations: [stdout]
+
+readTimeout: 10s
+writeTimeout: 10s
+writeQueueSize: 512
+udpMaxPayloadSize: 1452
+
+api: yes
+apiAddress: 127.0.0.1:9997
+metrics: no
+pprof: no
+playback: no
+
+authMethod: http
+authHTTPAddress: http://127.0.0.1:9781/internal/mediamtx/auth
+authHTTPExclude:
+  - action: api
+  - action: metrics
+  - action: pprof
+
+rtsp: no
+rtmp: yes
+rtmpAddress: 127.0.0.1:1935
+rtmpEncryption: strict
+rtmpsAddress: 0.0.0.0:1936
+rtmpServerKey: /etc/mabaeiream/mediamtx/privkey.pem
+rtmpServerCert: /etc/mabaeiream/mediamtx/fullchain.pem
+srt: no
+moq: no
+
+hls: yes
+hlsAddress: 127.0.0.1:8888
+hlsVariant: lowLatency
+hlsSegmentDuration: 1s
+hlsPartDuration: 200ms
+hlsSegmentCount: 7
+hlsSegmentMaxSize: 50M
+hlsDirectory: ""
+hlsAlwaysRemux: no
+
+webrtc: yes
+webrtcAddress: 127.0.0.1:8889
+webrtcEncryption: no
+webrtcLocalUDPAddress: 0.0.0.0:8189
+webrtcLocalTCPAddress: ""
+webrtcAdditionalHosts: [ahura.site]
+
+pathDefaults:
+  source: publisher
+
+paths:
+  all_others: {}

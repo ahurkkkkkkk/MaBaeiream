@@ -1,0 +1,24 @@
+[Unit]
+Description=MediaMTX private live ingest and playback relay
+After=network-online.target mabaeiream.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=mabaeiream
+Group=mabaeiream
+ExecStart=/opt/mabaeiream/bin/mediamtx /etc/mabaeiream/mediamtx.yml
+Restart=on-failure
+RestartSec=3
+UMask=0027
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+MemoryMax=384M
+CPUQuota=100%
+TasksMax=128
+LimitNOFILE=8192
+
+[Install]
+WantedBy=multi-user.target

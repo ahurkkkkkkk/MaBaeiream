@@ -1,0 +1,28 @@
+[package]
+name = "mabaeiream-desktop"
+version = "0.1.0"
+edition = "2024"
+publish = false
+build = "build.rs"
+
+[dependencies]
+crossbeam-queue = "0.3"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+slint = "1.18.1"
+i-slint-common = { version = "=1.18.1", default-features = false, features = ["fontconfig-dlopen"] }
+ureq = { version = "3", features = ["json"] }
+url = "2.5"
+tungstenite = { version = "0.29", features = ["rustls-tls-native-roots"] }
+webrtc = "0.21.0"
+rtc = "0.21.0"
+tokio = { version = "1.52.3", features = ["rt-multi-thread", "sync", "time", "macros"] }
+cpal = { version = "0.18.2", features = ["realtime"] }
+opus = "0.4.0"
+async-trait = "0.1.92"
+bytes = "1.12"
+rand = "0.9.5"
+rfd = { version = "0.15.4", default-features = false, features = ["xdg-portal", "tokio"] }
+
+[build-dependencies]
+slint-build = "1.18.1"

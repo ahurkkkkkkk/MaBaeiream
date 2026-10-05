@@ -1,0 +1,10 @@
+#!/bin/sh
+set -eu
+
+# Certbot runs deploy hooks once for each renewed lineage.
+[ "${RENEWED_LINEAGE:-}" = "/etc/letsencrypt/live/ahura.site" ] || exit 0
+
+install -d -o root -g mabaeiream -m 0750 /etc/mabaeiream/mediamtx
+install -o root -g mabaeiream -m 0640 "$RENEWED_LINEAGE/privkey.pem" /etc/mabaeiream/mediamtx/privkey.pem
+install -o root -g mabaeiream -m 0640 "$RENEWED_LINEAGE/fullchain.pem" /etc/mabaeiream/mediamtx/fullchain.pem
+systemctl try-restart mediamtx.service
